@@ -1,0 +1,193 @@
+$bg-grey: #f8f8f8;
+$border-grey: #888;
+$border-grey1: #eaeaea;
+$bg-event-default: #68cfff;
+$drop-bg: #68cfff;
+$colors: (
+    "red": #f44336,
+    "pink": #e91e63,
+    "purple": #9c27b0,
+    "indigo": #3f51b5,
+    "blue": #2196f3,
+    "teal": #009688,
+    "green": #4caf50,
+    "yellow": #ffeb3b,
+    "orange": #ff9800,
+    "brown": #795548
+);
+$text-dark: #3a4a5a;
+$text-light: #fff;
+$w: 80px;
+$h: 20px;
+.table-schedule {
+    * {
+        box-sizing: border-box;
+    }
+    table {
+        width: 100%;
+        border-spacing: 0;
+        border-collapse: collapse;
+    }
+    td, th {
+        padding: 0;
+    }
+
+    font-size: 12px;
+    min-width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: #fff;
+    
+    > thead {
+        > tr {
+            > td, > th {
+                text-align: center;
+                position: sticky;
+                top: 0;
+                background-color: $bg-grey;
+                border-bottom: 1px solid $border-grey;
+                border-right: 1px solid $border-grey;
+                z-index: 50;
+                padding: 5px;
+                &:first-child {
+                    left: 0;
+                    z-index: 100;
+                }
+            }
+        }
+    }
+    > tbody {
+        > tr {
+            > td, > th {
+                border-bottom: 1px solid $border-grey;
+                border-right: 1px solid $border-grey;
+            }
+        }
+    }
+
+    .time-line-wrapper {
+        position: sticky;
+        left: 0;
+        background-color: $bg-grey;
+        z-index: 50;
+        .time-line {
+            th {
+                height: $h;
+                border-bottom: 1px solid $border-grey1;
+                padding: 0 3px;
+            }
+            tr {
+                &:last-child > th {
+                    border-bottom: none;
+                }
+            }
+            th > div {
+                max-height: $h;
+                overflow: hidden;
+            }
+        }
+    }
+
+    .day-col {
+        position: relative;
+        &.drop-target {
+            &:before {
+                content: "";
+                display: block;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background-color: change-color($color: $drop-bg, $alpha: 0.4);
+            }
+        }
+        .day-grid {
+            user-select: none;
+            table-layout: fixed;
+            th, td {
+                border: 1px solid $border-grey1;
+            }
+            tr {
+                .grid-cell {
+                    width: $w;
+                    height: $h;
+                }
+                > td:first-child {
+                    border-left: none;
+                }
+                > td:last-child {
+                    border-right: none;
+                }
+                &:first-child > td {
+                    border-top: none;
+                }
+                &:last-child > td {
+                    border-bottom: none;
+                }
+            }
+        }
+        .events-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            display: flex;
+            .events-col {
+                flex: 1;
+                height: 100%;
+                position: relative;
+            }
+        }
+    }
+}
+.event {
+    position: absolute;
+    width: 100%;
+    background-color: $bg-event-default;
+    border: 1px solid darken($bg-event-default, 20%);
+    border-radius: 3px;
+    touch-action: none;
+    &.drawing {
+        opacity: 0.5;
+    }
+    .event-content-wrapper {
+        height: 100%;
+        overflow: auto;
+        .event-title {
+            font-weight: bold;
+            padding: 5px 5px 0;
+        }
+        .event-content {
+            padding: 5px;
+            word-break: break-word;
+        }
+    }
+    .event-bar-wrapper {
+        position: absolute;
+        bottom: 2px;
+        width: 100%;
+        .event-bar {
+            opacity: 0;
+            display: block;
+            margin: auto;
+            width: 20px;
+            height: 5px;
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 2px;
+            cursor: ns-resize;
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+    @each $name, $value in $colors {
+        &.event-#{$name} {
+            background-color: $value;
+            @if lightness($value) < 61% {
+                color: $text-light;
+            }
+            border-color: darken($value, 20%);
+        }    
+    }
+}
