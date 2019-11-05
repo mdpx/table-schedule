@@ -2,6 +2,8 @@
 
 > Vanilla JS table schedule with DnD support.
 
+[Demo](https://monkey-d-pixel.github.io/table-schedule/index.html)
+
 In this document, *event* or *event item* stands for event item in the schedule, while *Event* stands for JavaScript `Event` object.
 
 ## Contents
@@ -54,8 +56,6 @@ What it doesn't provide:
 - UI components for filling forms / confirmation / changing dates or whatever. **It only provides an interface for displaying and manipulating event items.** Say if you're using Bootstrap, you might need to initialize a form modal when add / edit Events fire.
 
 ## Getting Started
-
-[Demo](https://monkey-d-pixel.github.io/table-schedule/index.html)
 
 ### Installing
 
