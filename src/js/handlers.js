@@ -236,7 +236,6 @@ export const handlers = {
         let movedX = eventX - startX
         if (touchStartEl) {
             if (touchStartEl.className === 'events-col' && drawing && movedY > 0) {
-                e.preventDefault()
                 drawing.style.height = movedY + 'px'
             } else if (touchStartEl.className === 'event-bar' && modifying) {
                 e.preventDefault()
@@ -413,15 +412,10 @@ export const handlers = {
         let c = this.config
         let doQ = c.quantizing ^ e.shiftKey
         let lastY = touchData.yArr[touchData.yArr.length - 1]
-        let startY = touchData.startY
-        if (doQ) {
-            startY = this._quantize(startY)
-        }
-        let movedY = lastY - startY
         if (touchStartEl.className === 'events-col' && drawing) {
             let se = this._posToMinute(drawing)
             touchStartEl.removeChild(drawing)
-            if (movedY / CELL_HEIGHT * c.gap >= c.createThreshold) {
+            if (se.endm - se.startm >= c.createThreshold) {
                 let index = parseInt(touchStartEl.parentElement.dataset['index'])
                 let date = fullDate(this.dates[index])
                 let item = {
@@ -600,24 +594,6 @@ export const handlers = {
             autoScroll.reset.call(this)
             document.removeEventListener('mousemove', this._handlers.touchmove, {passive: false})
             document.removeEventListener('touchmove', this._handlers.touchmove, {passive: false})
-        }
-    },
-    click: function(e) {
-        let doStop = false
-        console.log(doStop)
-        let el = e.target
-        while (el && !el.matches('.event')) {
-            if (el === e.currentTarget) {
-                el = null
-                break
-            }
-            if (el.matches('.event-bar')) {
-                doStop = true
-            }
-            el = el.parentElement
-        }
-        if (doStop) {
-            e.stopImmediatePropagation()
         }
     }
 }

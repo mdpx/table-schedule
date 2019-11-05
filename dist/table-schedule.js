@@ -1309,7 +1309,6 @@
 
       if (touchStartEl) {
         if (touchStartEl.className === 'events-col' && drawing && movedY > 0) {
-          e.preventDefault();
           drawing.style.height = movedY + 'px';
         } else if (touchStartEl.className === 'event-bar' && modifying) {
           e.preventDefault();
@@ -1525,20 +1524,13 @@
       var c = this.config;
       var doQ = c.quantizing ^ e.shiftKey;
       var lastY = touchData.yArr[touchData.yArr.length - 1];
-      var startY = touchData.startY;
-
-      if (doQ) {
-        startY = this._quantize(startY);
-      }
-
-      var movedY = lastY - startY;
 
       if (touchStartEl.className === 'events-col' && drawing) {
         var se = this._posToMinute(drawing);
 
         touchStartEl.removeChild(drawing);
 
-        if (movedY / CELL_HEIGHT * c.gap >= c.createThreshold) {
+        if (se.endm - se.startm >= c.createThreshold) {
           var index = parseInt(touchStartEl.parentElement.dataset['index']);
           var date = fullDate(this.dates[index]);
           var item = {
@@ -1757,28 +1749,6 @@
         document.removeEventListener('touchmove', this._handlers.touchmove, {
           passive: false
         });
-      }
-    },
-    click: function click(e) {
-      var doStop = false;
-      console.log(doStop);
-      var el = e.target;
-
-      while (el && !el.matches('.event')) {
-        if (el === e.currentTarget) {
-          el = null;
-          break;
-        }
-
-        if (el.matches('.event-bar')) {
-          doStop = true;
-        }
-
-        el = el.parentElement;
-      }
-
-      if (doStop) {
-        e.stopImmediatePropagation();
       }
     }
   };
