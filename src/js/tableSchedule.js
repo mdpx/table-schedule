@@ -49,6 +49,7 @@ const TableSchedule = function(el, config) {
     }
 }
 TableSchedule.prototype._init = function() {
+    this.el.root.classList.add('table-schedule')
     this._genDates()
     this._renderOuter()
     this._renderInner()

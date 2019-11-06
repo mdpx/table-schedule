@@ -1,5 +1,5 @@
 /**
- * TableSchedule.js v0.1.1 by Monkey-D-Pixel
+ * TableSchedule.js v0.1.2 by Monkey-D-Pixel
  * git@github.com:Monkey-D-Pixel/table-schedule.git
  */
 
@@ -1822,6 +1822,8 @@
   };
 
   TableSchedule.prototype._init = function () {
+    this.el.root.classList.add('table-schedule');
+
     this._genDates();
 
     this._renderOuter();
