@@ -19,6 +19,7 @@ $text-dark: #3a4a5a;
 $text-light: #fff;
 $w: 80px;
 $h: 20px;
+$zIndex-base: 1;
 .table-schedule {
     * {
         box-sizing: border-box;
@@ -48,11 +49,11 @@ $h: 20px;
                 background-color: $bg-grey;
                 border-bottom: 1px solid $border-grey;
                 border-right: 1px solid $border-grey;
-                z-index: 50;
+                z-index: $zIndex-base;
                 padding: 5px;
                 &:first-child {
                     left: 0;
-                    z-index: 100;
+                    z-index: $zIndex-base + 1;
                 }
             }
         }
@@ -70,7 +71,7 @@ $h: 20px;
         position: sticky;
         left: 0;
         background-color: $bg-grey;
-        z-index: 50;
+        z-index: $zIndex-base;
         .time-line {
             th {
                 height: $h;

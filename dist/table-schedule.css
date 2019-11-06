@@ -24,12 +24,12 @@
   background-color: #f8f8f8;
   border-bottom: 1px solid #888;
   border-right: 1px solid #888;
-  z-index: 50;
+  z-index: 1;
   padding: 5px;
 }
 .table-schedule > thead > tr > td:first-child, .table-schedule > thead > tr > th:first-child {
   left: 0;
-  z-index: 100;
+  z-index: 2;
 }
 .table-schedule > tbody > tr > td, .table-schedule > tbody > tr > th {
   border-bottom: 1px solid #888;
@@ -39,7 +39,7 @@
   position: sticky;
   left: 0;
   background-color: #f8f8f8;
-  z-index: 50;
+  z-index: 1;
 }
 .table-schedule .time-line-wrapper .time-line th {
   height: 20px;
