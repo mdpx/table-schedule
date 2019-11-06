@@ -1,5 +1,5 @@
 import sass from 'rollup-plugin-sass'
-import builtin from 'rollup-plugin-node-builtins'
+import builtin from '@joseph184/rollup-plugin-node-builtins'
 import babel from 'rollup-plugin-babel'
 import { terser } from 'rollup-plugin-terser'
 import postcss from 'postcss'

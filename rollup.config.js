@@ -1,5 +1,5 @@
 import sass from 'rollup-plugin-sass'
-import builtin from 'rollup-plugin-node-builtins'
+import builtin from '@joseph184/rollup-plugin-node-builtins'
 import { eslint } from 'rollup-plugin-eslint'
 
 export default [
