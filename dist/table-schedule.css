@@ -25,7 +25,23 @@
   border-bottom: 1px solid #888;
   border-right: 1px solid #888;
   z-index: 1;
+}
+.table-schedule > thead > tr > td > div, .table-schedule > thead > tr > th > div {
   padding: 5px;
+}
+.table-schedule > thead > tr > td .group-header th, .table-schedule > thead > tr > th .group-header th {
+  width: 80px;
+  border-top: 1px solid #aaa;
+  padding: 2px;
+  text-align: center;
+}
+.table-schedule > thead > tr > td .group-header th > div, .table-schedule > thead > tr > th .group-header th > div {
+  height: 20px;
+  overflow: hidden;
+  word-break: break-all;
+}
+.table-schedule > thead > tr > td .group-header th + th, .table-schedule > thead > tr > th .group-header th + th {
+  border-left: 1px solid #aaa;
 }
 .table-schedule > thead > tr > td:first-child, .table-schedule > thead > tr > th:first-child {
   left: 0;

@@ -50,7 +50,25 @@ $zIndex-base: 1;
                 border-bottom: 1px solid $border-grey;
                 border-right: 1px solid $border-grey;
                 z-index: $zIndex-base;
-                padding: 5px;
+                > div {
+                    padding: 5px;
+                }
+                .group-header {
+                    th {
+                        width: $w;
+                        border-top: 1px solid #aaa;
+                        padding: 2px;
+                        text-align: center;
+                        > div {
+                            height: $h;
+                            overflow: hidden;
+                            word-break: break-all;
+                        }
+                        + th {
+                            border-left: 1px solid #aaa;
+                        }
+                    }
+                }
                 &:first-child {
                     left: 0;
                     z-index: $zIndex-base + 1;

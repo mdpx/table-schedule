@@ -1,5 +1,5 @@
 import { CELL_HEIGHT } from './constants'
-import { createElem, hhmm, hasProp } from './utils'
+import { createElem, hhmm, hasProp, getRect } from './utils'
 
 export default {
     _genDates(update) {
@@ -22,21 +22,31 @@ export default {
             props: {},
             children: [{
                 tagName: 'TR',
-                props: {},
                 children: [{
-                    tagName: 'TH',
-                    props: {
-                        // width: '5%'
-                    }
+                    tagName: 'TH'
                 }]
             }]
         }
         for (let i=0; i<dates.length; i++) {
             thead.children[0].children.push({
                 tagName: 'TH',
-                props: {},
-                html: true,
-                children: c.dateFormat(dates[i])
+                children: [
+                    {
+                        tagName: 'div',
+                        children: c.dateFormat(dates[i]),
+                        html: true
+                    },
+                    {
+                        tagName: 'table',
+                        className: 'group-header',
+                        children: [{
+                            tagName: 'thead',
+                            children: [{
+                                tagName: 'tr'
+                            }]
+                        }]
+                    }
+                ]
             })
         }
         return thead
@@ -102,7 +112,7 @@ export default {
         cols = cols || 1
         let c = this.config
         let rows = Math.ceil((c.dayEnd - c.dayStart) * 60 / c.gap)
-        let grid = this.el.dayGrids[index].firstElementChild
+        let grid = this.el.dayGrids[index].querySelector('tbody')
         let r = {
             tagName: 'TR',
             children: []
@@ -233,6 +243,68 @@ export default {
             let idx = this._addCol(index, item.group)
             this._insertIntoCol(elem, cols[idx])
         }
+        this._setGroupHeader(index)
+    },
+    _setGroupHeader(index) {
+        let c = this.config
+        const getHeaderText = col => {
+            let ans = null
+            let item = this.getEvent(col.children[0])
+            if (item) {
+                ans = item.group
+                if (c.groupHeaderText) {
+                    if (typeof c.groupHeaderText === 'string') {
+                        if (item && hasProp(item, c.groupHeaderText)) {
+                            ans = item[c.groupHeaderText] || ''
+                        }
+                    } else if (typeof c.groupHeaderText === 'function') {
+                        ans = c.groupHeaderText(item.group)
+                    }
+                }
+            }
+            return ans
+        }
+        let tr = this.el.groupHeaders[index].querySelector('tr')
+        tr.innerHTML = ''
+        if (c.labelGroups) {
+            let cols = this.el.eventsContainers[index].children
+            let colspan = 1
+            let group = cols[0] && cols[0].dataset['group']
+            let headerText = getHeaderText(cols[0])
+            let thObj = {
+                tagName: 'th',
+                style: {},
+                children: [{
+                    tagName: 'div',
+                    attr: {title: headerText},
+                    children: headerText
+                }]
+            }
+            if (cols.length > 1) {
+                for (let i = 1; i < cols.length; i++) {
+                    let col = cols[i]
+                    if (col.dataset['group'] !== group) { // new group
+                        thObj.style.width = colspan / cols.length * 100 + '%'
+                        let headerText = getHeaderText(cols[i - 1])
+                        thObj.children[0].children =  headerText
+                        thObj.children[0].attr.title = headerText
+                        tr.appendChild(createElem(thObj))
+                        group = col.dataset['group']
+                        colspan = 1
+                    } else {
+                        colspan += 1
+                    }
+                }
+                thObj.style.width = colspan / cols.length * 100 + '%'
+                let headerText = getHeaderText(cols[cols.length - 1])
+                thObj.children[0].children = headerText
+                thObj.children[0].attr.title = headerText
+                tr.appendChild(createElem(thObj)) // last group
+            } else if (thObj.children[0].children !== undefined && thObj.children[0].children !== null) {
+                tr.appendChild(createElem(thObj)) // only one group
+            }
+            this._coords.grid = getRect(this.el.dayGrids[0], this.el.scroll)
+        }
     },
     _arrangeEvents(dateIndex) {
         let con = this.el.eventsContainers[dateIndex]
@@ -275,6 +347,7 @@ export default {
             }
         }
         this._setGrid(dateIndex, cols.length)
+        this._setGroupHeader(dateIndex)
     },
     _addCol(index, group) {
         let col = createElem({
@@ -349,6 +422,7 @@ export default {
                 i -= 1
             }
             this._renderInner(index)
+            this._setGroupHeader(index)
         })
     }
 }

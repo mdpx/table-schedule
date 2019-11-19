@@ -26,6 +26,8 @@ In this document, *event* or *event item* stands for event item in the schedule,
     - [dateFormat](#dateformat)
     - [directChange](#directchange)
     - [extraDataset](#extradataset)
+    - [labelGroups](#labelgroups)
+    - [groupHeaderText](#groupheadertext)
   - [Custom Events](#custom-events)
     - [create](#create)
     - [modify](#modify)
@@ -234,6 +236,22 @@ Or it can be an array of any of:
 - Default: `null`
 
 Add extra dataset entries to event elements. For example, `{id: 'ID'}` will add a `data-id` to the element with the value from event item's `ID` property.
+
+### labelGroups
+- Type: `Boolean`
+- Default: `false`
+
+Whether to show group headers below the top table header.
+
+### groupHeaderText
+- Type: `Object|String|function`
+- Default: `null`
+
+What text to show in group headers.
+
+- `null` - eventItem.group
+- `String` - a property value from eventItem
+- `function` - a function which takes eventItem.group, e.g. group => ('Group - ' + group)
 
 ## Custom Events
 These 3 `CustomEvent`s are fired on `mouseup` or `touchend`, which is after a drag-and-drop action on the schedule. All of them come with a `detail` property which contains useful information.

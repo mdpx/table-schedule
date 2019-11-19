@@ -14,5 +14,7 @@ export default {
         return fullDate(date).substring(5)
     },
     directChange: false, // if true, addEvent/updateEvent will be automatically called; or array of wanted ones
-    extraDataset: null // add extra dataset entries to event element, e.g. {id: 'ID'} will add 'data-id' with value from eventItem.ID
+    extraDataset: null, // add extra dataset entries to event element, e.g. {id: 'ID'} will add 'data-id' with value from eventItem.ID
+    labelGroups: false, // whether show group header
+    groupHeaderText: null // default using item.group | a key from item object | a function which takes item.group
 }

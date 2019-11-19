@@ -158,7 +158,7 @@
     return el.getBoundingClientRect();
   };
   var getRect = function getRect(el, scroll) {
-    scroll = scroll || document.scrollingElement || document.documentElement;
+    scroll = scroll || findScrollParent(el);
     var rect = el.getBoundingClientRect().toJSON();
     rect.top += scroll.scrollTop;
     rect.bottom += scroll.scrollTop;
@@ -239,7 +239,11 @@
     },
     directChange: false,
     // if true, addEvent/updateEvent will be automatically called; or array of wanted ones
-    extraDataset: null // add extra dataset entries to event element, e.g. {id: 'ID'} will add 'data-id' with value from eventItem.ID
+    extraDataset: null,
+    // add extra dataset entries to event element, e.g. {id: 'ID'} will add 'data-id' with value from eventItem.ID
+    labelGroups: false,
+    // whether show group header
+    groupHeaderText: null // default using item.group | a key from item object | a function which takes item.group
 
   };
 
@@ -278,11 +282,8 @@
         props: {},
         children: [{
           tagName: 'TR',
-          props: {},
           children: [{
-            tagName: 'TH',
-            props: {// width: '5%'
-            }
+            tagName: 'TH'
           }]
         }]
       };
@@ -290,9 +291,20 @@
       for (var i = 0; i < dates.length; i++) {
         thead.children[0].children.push({
           tagName: 'TH',
-          props: {},
-          html: true,
-          children: c.dateFormat(dates[i])
+          children: [{
+            tagName: 'div',
+            children: c.dateFormat(dates[i]),
+            html: true
+          }, {
+            tagName: 'table',
+            className: 'group-header',
+            children: [{
+              tagName: 'thead',
+              children: [{
+                tagName: 'tr'
+              }]
+            }]
+          }]
         });
       }
 
@@ -358,7 +370,7 @@
       cols = cols || 1;
       var c = this.config;
       var rows = Math.ceil((c.dayEnd - c.dayStart) * 60 / c.gap);
-      var grid = this.el.dayGrids[index].firstElementChild;
+      var grid = this.el.dayGrids[index].querySelector('tbody');
       var r = {
         tagName: 'TR',
         children: []
@@ -494,6 +506,89 @@
 
         this._insertIntoCol(elem, cols[idx]);
       }
+
+      this._setGroupHeader(index);
+    },
+    _setGroupHeader: function _setGroupHeader(index) {
+      var _this = this;
+
+      var c = this.config;
+
+      var getHeaderText = function getHeaderText(col) {
+        var ans = null;
+
+        var item = _this.getEvent(col.children[0]);
+
+        if (item) {
+          ans = item.group;
+
+          if (c.groupHeaderText) {
+            if (typeof c.groupHeaderText === 'string') {
+              if (item && hasProp(item, c.groupHeaderText)) {
+                ans = item[c.groupHeaderText] || '';
+              }
+            } else if (typeof c.groupHeaderText === 'function') {
+              ans = c.groupHeaderText(item.group);
+            }
+          }
+        }
+
+        return ans;
+      };
+
+      var tr = this.el.groupHeaders[index].querySelector('tr');
+      tr.innerHTML = '';
+
+      if (c.labelGroups) {
+        var cols = this.el.eventsContainers[index].children;
+        var colspan = 1;
+        var group = cols[0] && cols[0].dataset['group'];
+        var headerText = getHeaderText(cols[0]);
+        var thObj = {
+          tagName: 'th',
+          style: {},
+          children: [{
+            tagName: 'div',
+            attr: {
+              title: headerText
+            },
+            children: headerText
+          }]
+        };
+
+        if (cols.length > 1) {
+          for (var i = 1; i < cols.length; i++) {
+            var col = cols[i];
+
+            if (col.dataset['group'] !== group) {
+              // new group
+              thObj.style.width = colspan / cols.length * 100 + '%';
+
+              var _headerText2 = getHeaderText(cols[i - 1]);
+
+              thObj.children[0].children = _headerText2;
+              thObj.children[0].attr.title = _headerText2;
+              tr.appendChild(createElem(thObj));
+              group = col.dataset['group'];
+              colspan = 1;
+            } else {
+              colspan += 1;
+            }
+          }
+
+          thObj.style.width = colspan / cols.length * 100 + '%';
+
+          var _headerText = getHeaderText(cols[cols.length - 1]);
+
+          thObj.children[0].children = _headerText;
+          thObj.children[0].attr.title = _headerText;
+          tr.appendChild(createElem(thObj)); // last group
+        } else if (thObj.children[0].children !== undefined && thObj.children[0].children !== null) {
+          tr.appendChild(createElem(thObj)); // only one group
+        }
+
+        this._coords.grid = getRect(this.el.dayGrids[0], this.el.scroll);
+      }
     },
     _arrangeEvents: function _arrangeEvents(dateIndex) {
       var con = this.el.eventsContainers[dateIndex];
@@ -542,6 +637,8 @@
       }
 
       this._setGrid(dateIndex, cols.length);
+
+      this._setGroupHeader(dateIndex);
     },
     _addCol: function _addCol(index, group) {
       var col = createElem({
@@ -621,19 +718,21 @@
       }
     },
     _clearDom: function _clearDom(which) {
-      var _this = this;
+      var _this2 = this;
 
       var pool = this._toDateIndexList(which);
 
       pool.forEach(function (index) {
-        var blocks = _this.el.eventsContainers[index].getElementsByClassName('event');
+        var blocks = _this2.el.eventsContainers[index].getElementsByClassName('event');
 
         for (var i = 0; i < blocks.length; i++) {
           blocks[i].parentElement.removeChild(blocks[i]);
           i -= 1;
         }
 
-        _this._renderInner(index);
+        _this2._renderInner(index);
+
+        _this2._setGroupHeader(index);
       });
     }
   };
@@ -1790,6 +1889,7 @@
       dayCols: elem.getElementsByClassName('day-col'),
       dayGrids: elem.getElementsByClassName('day-grid'),
       eventsContainers: elem.getElementsByClassName('events-container'),
+      groupHeaders: elem.getElementsByClassName('group-header'),
       scroll: findScrollParent(elem)
     };
     /**

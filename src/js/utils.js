@@ -126,7 +126,7 @@ export const getFixRect = function(el) {
 }
 
 export const getRect = function(el, scroll) {
-    scroll = scroll || document.scrollingElement || document.documentElement
+    scroll = scroll || findScrollParent(el)
     let rect = el.getBoundingClientRect().toJSON()
     rect.top += scroll.scrollTop
     rect.bottom += scroll.scrollTop

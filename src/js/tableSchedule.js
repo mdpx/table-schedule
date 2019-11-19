@@ -23,6 +23,7 @@ const TableSchedule = function(el, config) {
         dayCols: elem.getElementsByClassName('day-col'),
         dayGrids: elem.getElementsByClassName('day-grid'),
         eventsContainers: elem.getElementsByClassName('events-container'),
+        groupHeaders: elem.getElementsByClassName('group-header'),
         scroll: findScrollParent(elem)
     }
     /**
