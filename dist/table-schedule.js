@@ -1,5 +1,5 @@
 /**
- * TableSchedule.js v0.1.2 by Monkey-D-Pixel
+ * TableSchedule.js v0.2.0 by Monkey-D-Pixel
  * git@github.com:Monkey-D-Pixel/table-schedule.git
  */
 

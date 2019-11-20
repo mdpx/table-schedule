@@ -1,3 +1,10 @@
+# 0.2.0 (2019-11-20)
+
+### Features
+
+* new options for labeling different groups ([507b9bd](https://github.com/Monkey-D-Pixel/table-schedule/commit/507b9bdf1b0d8bf8dba5dd73b24cea225a920e59))
+
+
 ## 0.1.2 (2019-11-06)
 
 Build and improvements.
