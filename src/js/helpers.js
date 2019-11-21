@@ -134,7 +134,7 @@ export default {
         } else if (Array.isArray(which)) {
             let p = which.map(w => this._toDateIndex(w))
             p.forEach(q => {
-                if (pool.indexOf(q) === -1) {
+                if (q > -1 && pool.indexOf(q) === -1) {
                     pool.push(q)
                 }
             })

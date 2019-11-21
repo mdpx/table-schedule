@@ -1140,7 +1140,7 @@
           return _this._toDateIndex(w);
         });
         p.forEach(function (q) {
-          if (pool.indexOf(q) === -1) {
+          if (q > -1 && pool.indexOf(q) === -1) {
             pool.push(q);
           }
         });
