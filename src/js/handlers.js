@@ -1,4 +1,8 @@
-import { CELL_HEIGHT, MOVE_X_THRESHOLD, EVENT } from './constants'
+import {
+    CELL_HEIGHT, MOVE_X_THRESHOLD, EVENT,
+    TOUCH_DELAY
+} from './constants'
+
 import {
     closest, createElem, getDelegate,
     minuteToTimeStr, dispatchEvent, fullDate,
@@ -102,8 +106,7 @@ const land = function() {
     touchData.startX = 0
     touchData.xArr = []
     touchData.timestamp = Date.now()
-    clearTimeout(touchTO)
-    touchTO = null
+    touchStartEl = null
     drawing = null
     modifying = null
     dragging = null
@@ -136,10 +139,45 @@ const preventClick = function(e) {
     e.stopImmediatePropagation()
 }
 
+const preventContextMenu = function(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    return false
+}
+
+const scrollDetector = function() {
+    // TODO: if no scroll container provided, <html> is chosen, which doesn't seem to response to scroll event
+    // may be auto add a scroll container?
+    clearTimeout(touchTO)
+    touchTO = null
+}
+
 export const handlers = {
     touchstart: function(e) {
+        let c = this.config
+        let xy = getXY(e)
+        let eventY = xy.y
+        if (c.quantizing ^ e.shiftKey) {
+            eventY = this._quantize(eventY)
+        }
+
+        const common = function() {
+            touchData.timestamp = Date.now()
+            touchData.startY = xy.y
+            touchData.yArr.push(eventY)
+            let eventX = xy.x
+            touchData.startX = eventX
+            touchData.xArr.push(eventX)
+            document.addEventListener('mousemove', this._handlers.touchmove, {passive: false})
+            document.addEventListener('touchmove', this._handlers.touchmove, {passive: false})
+            document.addEventListener('mouseup', this._handlers.touchend)
+            document.addEventListener('touchend', this._handlers.touchend)
+        }.bind(this)
+
         const catchers = [
             ['.event-bar', function(e, el) {
+                common()
+                touchStartEl = el
                 el.style.opacity = 1
                 modifying = closest(el, '.event')
                 let offset = getOffset(modifying)
@@ -150,6 +188,8 @@ export const handlers = {
                 modifying.removeEventListener('click', preventClick)
             }],
             ['.event', function(e, el) {
+                common()
+                touchStartEl = el
                 let root = this.el.root
                 let scroll = this.el.scroll
                 modifying = el
@@ -175,43 +215,40 @@ export const handlers = {
             }],
             ['.events-col', function(e, el) {
                 if (el === e.target) { // start drawing only when touch on .events-col
-                    let top = eventY - this._coords.grid.top + this.el.scroll.scrollTop
-                    drawing = createElem({
-                        tagName: 'DIV',
-                        className: 'event drawing',
-                        style: {
-                            top: top + 'px',
-                        }
-                    })
-                    el.appendChild(drawing)
+                    common()
+                    const starter = () => {
+                        touchStartEl = el
+                        let top = eventY - this._coords.grid.top + this.el.scroll.scrollTop
+                        drawing = createElem({
+                            tagName: 'DIV',
+                            className: 'event drawing',
+                            style: {
+                                top: top + 'px',
+                            }
+                        })
+                        el.appendChild(drawing)
+                    }
+                    // if touch - set a timer, unset when touchend
+                    if (e.type === 'touchstart') {
+                        touchTO = setTimeout(() => {
+                            starter()
+                        }, TOUCH_DELAY);
+                        window.addEventListener('contextmenu', preventContextMenu)
+                        this.el.scroll.addEventListener('scroll', scrollDetector)
+                    } else {
+                        starter()
+                    }
                 } else if (e.target.className !== 'event-bar' && el.contains(e.target)) {
                     e.stopPropagation()
                 }
             }]
         ]
-        let c = this.config
-        let xy = getXY(e)
-        let eventY = xy.y
-        if (c.quantizing ^ e.shiftKey) {
-            eventY = this._quantize(eventY)
-        }
-        touchData.timestamp = Date.now()
-        touchData.startY = xy.y
-        touchData.yArr.push(eventY)
-        let eventX = xy.x
-        touchData.startX = eventX
-        touchData.xArr.push(eventX)
-        document.addEventListener('mousemove', this._handlers.touchmove, {passive: false})
-        document.addEventListener('touchmove', this._handlers.touchmove, {passive: false})
-        document.addEventListener('mouseup', this._handlers.touchend)
-        document.addEventListener('touchend', this._handlers.touchend)
 
         for (let i=0; i<catchers.length; i++) {
             let selector = catchers[i][0]
             let catcher = catchers[i][1].bind(this)
             let el = getDelegate(e, selector)
             if (el) {
-                touchStartEl = el
                 this.el.root.style.userSelect = 'none'
                 catcher(e, el)
                 break
@@ -235,10 +272,10 @@ export const handlers = {
         let movedY = eventY - startY
         let movedX = eventX - startX
         if (touchStartEl) {
+            e.preventDefault()
             if (touchStartEl.className === 'events-col' && drawing && movedY > 0) {
                 drawing.style.height = movedY + 'px'
             } else if (touchStartEl.className === 'event-bar' && modifying) {
-                e.preventDefault()
                 if (Math.abs(movedY) >= c.stretchThreshold / c.gap * CELL_HEIGHT || yTriggered) {
                     if (!yTriggered) {
                         modifying.addEventListener('click', preventClick)
@@ -272,7 +309,6 @@ export const handlers = {
                     }
                 }
             } else if (touchStartEl.classList.contains('event') && modifying) {
-                e.preventDefault()
                 let root = this.el.root
                 let scroll = this.el.scroll
                 if (Math.abs(movedX) > MOVE_X_THRESHOLD) {
@@ -406,6 +442,10 @@ export const handlers = {
     },
     touchend: function(e) {
         this.el.root.style.userSelect = ''
+        clearTimeout(touchTO)
+        touchTO = null
+        window.removeEventListener('contextmenu', preventContextMenu)
+        this.el.scroll.removeEventListener('scroll', scrollDetector)
         if (!touchStartEl) {
             return
         }
@@ -564,7 +604,6 @@ export const handlers = {
             land()
             autoScroll.reset.call(this)
         }
-
         document.removeEventListener('mousemove', this._handlers.touchmove, {passive: false})
         document.removeEventListener('touchmove', this._handlers.touchmove, {passive: false})
         document.removeEventListener('mouseup', this._handlers.touchend)

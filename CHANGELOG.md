@@ -1,3 +1,7 @@
+# 0.3.0 (2019-12-19)
+
+Better touch device support.
+
 # 0.2.0 (2019-11-20)
 
 ### Features

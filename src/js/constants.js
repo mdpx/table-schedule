@@ -6,3 +6,5 @@ export const EVENT = {
     modify: 'modify',
     remove: 'remove'
 }
+
+export const TOUCH_DELAY = 500 // ms

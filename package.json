@@ -1,6 +1,6 @@
 {
   "name": "table-schedule",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Vanilla JS table schedule with DnD support.",
   "main": "index.js",
   "scripts": {

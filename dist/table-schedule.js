@@ -256,6 +256,7 @@
     modify: 'modify',
     remove: 'remove'
   };
+  var TOUCH_DELAY = 500; // ms
 
   var privates = {
     _genDates: function _genDates(update) {
@@ -1265,8 +1266,7 @@
     touchData.startX = 0;
     touchData.xArr = [];
     touchData.timestamp = Date.now();
-    clearTimeout(touchTO);
-    touchTO = null;
+    touchStartEl = null;
     drawing = null;
     modifying = null;
     dragging = null;
@@ -1299,9 +1299,49 @@
     e.stopImmediatePropagation();
   };
 
+  var preventContextMenu = function preventContextMenu(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
+  var scrollDetector = function scrollDetector() {
+    // TODO: if no scroll container provided, <html> is chosen, which doesn't seem to response to scroll event
+    // may be auto add a scroll container?
+    clearTimeout(touchTO);
+    touchTO = null;
+  };
+
   var handlers = {
     touchstart: function touchstart(e) {
+      var c = this.config;
+      var xy = getXY(e);
+      var eventY = xy.y;
+
+      if (c.quantizing ^ e.shiftKey) {
+        eventY = this._quantize(eventY);
+      }
+
+      var common = function () {
+        touchData.timestamp = Date.now();
+        touchData.startY = xy.y;
+        touchData.yArr.push(eventY);
+        var eventX = xy.x;
+        touchData.startX = eventX;
+        touchData.xArr.push(eventX);
+        document.addEventListener('mousemove', this._handlers.touchmove, {
+          passive: false
+        });
+        document.addEventListener('touchmove', this._handlers.touchmove, {
+          passive: false
+        });
+        document.addEventListener('mouseup', this._handlers.touchend);
+        document.addEventListener('touchend', this._handlers.touchend);
+      }.bind(this);
+
       var catchers = [['.event-bar', function (e, el) {
+        common();
+        touchStartEl = el;
         el.style.opacity = 1;
         modifying = closest(el, '.event');
         var offset = getOffset(modifying);
@@ -1311,6 +1351,8 @@
         bound.bottom = this._coords.scroll.top + getOffset(this.el.scroll).height;
         modifying.removeEventListener('click', preventClick);
       }], ['.event', function (e, el) {
+        common();
+        touchStartEl = el;
         var root = this.el.root;
         var scroll = this.el.scroll;
         modifying = el;
@@ -1336,43 +1378,39 @@
 
         touchStartEl.removeEventListener('click', preventClick);
       }], ['.events-col', function (e, el) {
+        var _this = this;
+
         if (el === e.target) {
           // start drawing only when touch on .events-col
-          var top = eventY - this._coords.grid.top + this.el.scroll.scrollTop;
-          drawing = createElem({
-            tagName: 'DIV',
-            className: 'event drawing',
-            style: {
-              top: top + 'px'
-            }
-          });
-          el.appendChild(drawing);
+          common();
+
+          var starter = function starter() {
+            touchStartEl = el;
+            var top = eventY - _this._coords.grid.top + _this.el.scroll.scrollTop;
+            drawing = createElem({
+              tagName: 'DIV',
+              className: 'event drawing',
+              style: {
+                top: top + 'px'
+              }
+            });
+            el.appendChild(drawing);
+          }; // if touch - set a timer, unset when touchend
+
+
+          if (e.type === 'touchstart') {
+            touchTO = setTimeout(function () {
+              starter();
+            }, TOUCH_DELAY);
+            window.addEventListener('contextmenu', preventContextMenu);
+            this.el.scroll.addEventListener('scroll', scrollDetector);
+          } else {
+            starter();
+          }
         } else if (e.target.className !== 'event-bar' && el.contains(e.target)) {
           e.stopPropagation();
         }
       }]];
-      var c = this.config;
-      var xy = getXY(e);
-      var eventY = xy.y;
-
-      if (c.quantizing ^ e.shiftKey) {
-        eventY = this._quantize(eventY);
-      }
-
-      touchData.timestamp = Date.now();
-      touchData.startY = xy.y;
-      touchData.yArr.push(eventY);
-      var eventX = xy.x;
-      touchData.startX = eventX;
-      touchData.xArr.push(eventX);
-      document.addEventListener('mousemove', this._handlers.touchmove, {
-        passive: false
-      });
-      document.addEventListener('touchmove', this._handlers.touchmove, {
-        passive: false
-      });
-      document.addEventListener('mouseup', this._handlers.touchend);
-      document.addEventListener('touchend', this._handlers.touchend);
 
       for (var i = 0; i < catchers.length; i++) {
         var selector = catchers[i][0];
@@ -1380,7 +1418,6 @@
         var el = getDelegate(e, selector);
 
         if (el) {
-          touchStartEl = el;
           this.el.root.style.userSelect = 'none';
           catcher(e, el);
           break;
@@ -1407,11 +1444,11 @@
       var movedX = eventX - startX;
 
       if (touchStartEl) {
+        e.preventDefault();
+
         if (touchStartEl.className === 'events-col' && drawing && movedY > 0) {
           drawing.style.height = movedY + 'px';
         } else if (touchStartEl.className === 'event-bar' && modifying) {
-          e.preventDefault();
-
           if (Math.abs(movedY) >= c.stretchThreshold / c.gap * CELL_HEIGHT || yTriggered) {
             if (!yTriggered) {
               modifying.addEventListener('click', preventClick);
@@ -1454,7 +1491,6 @@
             }
           }
         } else if (touchStartEl.classList.contains('event') && modifying) {
-          e.preventDefault();
           var root = this.el.root;
           var scroll = this.el.scroll;
 
@@ -1615,6 +1651,10 @@
     },
     touchend: function touchend(e) {
       this.el.root.style.userSelect = '';
+      clearTimeout(touchTO);
+      touchTO = null;
+      window.removeEventListener('contextmenu', preventContextMenu);
+      this.el.scroll.removeEventListener('scroll', scrollDetector);
 
       if (!touchStartEl) {
         return;
