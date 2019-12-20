@@ -1,6 +1,8 @@
 import { CELL_HEIGHT } from './constants'
 import { createElem, hhmm, hasProp, getRect } from './utils'
 
+let timeoutRef = null
+
 export default {
     _genDates(update) {
         this.dates = []
@@ -303,7 +305,11 @@ export default {
             } else if (thObj.children[0].children !== undefined && thObj.children[0].children !== null) {
                 tr.appendChild(createElem(thObj)) // only one group
             }
-            this._coords.grid = getRect(this.el.dayGrids[0], this.el.scroll)
+            timeoutRef = setTimeout(() => {
+                clearTimeout(timeoutRef)
+                timeoutRef = null
+                this._coords.grid = getRect(this.el.dayGrids[0], this.el.scroll)
+            }, 0)
         }
     },
     _arrangeEvents(dateIndex) {
