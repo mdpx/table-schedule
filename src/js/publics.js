@@ -1,4 +1,4 @@
-import { createElem } from './utils'
+import { createElem, getRect } from './utils'
 
 export default {
     addEvent(eventItem) {
@@ -181,5 +181,10 @@ export default {
             }
         }
         return null
+    },
+    updateRect() {
+        this._coords.grid = getRect(this.el.dayGrids[0])
+        this._coords.scroll = getRect(this.el.scroll)
+        return this
     }
 }
