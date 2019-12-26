@@ -4,8 +4,8 @@ import { closest, parseDate, fullDate, timeStrToMinute } from './utils'
 const timeRegex = /^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/
 
 export default {
-    _posToMinute(elem) {
-        if (elem.dataset['startm'] && elem.dataset['endm']) {
+    _posToMinute(elem, recalc) {
+        if (!recalc && elem.dataset['startm'] && elem.dataset['endm']) {
             return {
                 startm: parseInt(elem.dataset['startm']),
                 endm: parseInt(elem.dataset['endm'])

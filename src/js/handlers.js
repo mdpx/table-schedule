@@ -486,7 +486,7 @@ export const handlers = {
             touchStartEl.style.opacity = ''
             modifying.classList.remove('drawing')
             if (Math.abs(modifying.offsetHeight - modifyingH) > 0) {
-                let se = this._posToMinute(modifying)
+                let se = this._posToMinute(modifying, true)
                 let coords = this._getEventCoords(modifying)
                 let item = this.events[coords[0]][coords[1]]
                 let mod = {
@@ -505,6 +505,8 @@ export const handlers = {
                     if (c.directChange === true || includesAny(c.directChange, [EVENT.modify, 'end'])) {
                         item.end = mod.end
                         this.updateEvent(coords, item)
+                        modifying.dataset['startm'] = se.startm
+                        modifying.dataset['endm'] = se.endm
                     }
                 } else {
                     modifying.style.height = modifyingH + 'px'
@@ -588,7 +590,7 @@ export const handlers = {
                         }
                         modifying.style.top = top + 'px'
                     }
-                    let se = this._posToMinute(modifying)
+                    let se = this._posToMinute(modifying, true)
                     let coords = this._getEventCoords(modifying)
                     let item = this.events[coords[0]][coords[1]]
                     let mod = {
@@ -610,6 +612,8 @@ export const handlers = {
                         item.start = mod.start
                         item.end = mod.end
                         this.updateEvent(coords, item)
+                        modifying.dataset['startm'] = se.startm
+                        modifying.dataset['endm'] = se.endm
                     }
                 }
             }
