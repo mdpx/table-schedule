@@ -50,20 +50,29 @@ const autoScroll = (function() {
         h: 0,
         v: 0
     }
+    const hasRaf = window.requestAnimationFrame && typeof requestAnimationFrame === 'function'
     const set = function(d, v) {
         let el = this.el.scroll
         velocity[d] = v
+        const tick = () => {
+            if (d === 'h') {
+                el.scrollLeft += velocity[d]
+            } else {
+                el.scrollTop += velocity[d]
+            }
+            if (hasRaf) {
+                scrollInt[d] = requestAnimationFrame(tick)
+            }
+        }
         if (v === 0) {
             reset.call(this, d)
         } else {
             if (!scrollInt[d]) {
-                scrollInt[d] = setInterval(function() {
-                    if (d === 'h') {
-                        el.scrollLeft += velocity[d]
-                    } else {
-                        el.scrollTop += velocity[d]
-                    }
-                }, 16)
+                if (hasRaf) {
+                    scrollInt[d] = requestAnimationFrame(tick)
+                } else {
+                    scrollInt[d] = setInterval(tick, 16)
+                }
             }
         }
     }
@@ -79,7 +88,11 @@ const autoScroll = (function() {
             v: this.el.scroll.scrollTop - initScroll.v
         }
         t.forEach(di => {
-            clearInterval(scrollInt[di])
+            if (hasRaf) {
+                cancelAnimationFrame(scrollInt[di])
+            } else {
+                clearInterval(scrollInt[di])
+            }
             scrollInt[di] = null
             velocity[di] = 0
         })
