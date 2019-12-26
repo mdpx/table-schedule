@@ -1,5 +1,5 @@
 /**
- * TableSchedule.js v0.2.0 by Monkey-D-Pixel
+ * TableSchedule.js v0.4.0 by Monkey-D-Pixel
  * git@github.com:Monkey-D-Pixel/table-schedule.git
  */
 
@@ -258,6 +258,7 @@
   };
   var TOUCH_DELAY = 500; // ms
 
+  var timeoutRef = null;
   var privates = {
     _genDates: function _genDates(update) {
       this.dates = [];
@@ -588,7 +589,12 @@
           tr.appendChild(createElem(thObj)); // only one group
         }
 
-        this._coords.grid = getRect(this.el.dayGrids[0], this.el.scroll);
+        clearTimeout(timeoutRef);
+        timeoutRef = setTimeout(function () {
+          clearTimeout(timeoutRef);
+          timeoutRef = null;
+          _this._coords.grid = getRect(_this.el.dayGrids[0], _this.el.scroll);
+        }, 0);
       }
     },
     _arrangeEvents: function _arrangeEvents(dateIndex) {
@@ -985,12 +991,24 @@
       }
 
       return null;
+    },
+    updateRect: function updateRect() {
+      this._coords.grid = getRect(this.el.dayGrids[0]);
+      this._coords.scroll = getRect(this.el.scroll);
+      return this;
     }
   };
 
   var timeRegex = /^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/;
   var helpers = {
-    _posToMinute: function _posToMinute(elem) {
+    _posToMinute: function _posToMinute(elem, recalc) {
+      if (!recalc && elem.dataset['startm'] && elem.dataset['endm']) {
+        return {
+          startm: parseInt(elem.dataset['startm']),
+          endm: parseInt(elem.dataset['endm'])
+        };
+      }
+
       var c = this.config;
       var top = elem.offsetTop;
       var h = elem.offsetHeight;
@@ -1195,22 +1213,33 @@
       h: 0,
       v: 0
     };
+    var hasRaf = window.requestAnimationFrame && typeof requestAnimationFrame === 'function';
 
     var set = function set(d, v) {
       var el = this.el.scroll;
       velocity[d] = v;
 
+      var tick = function tick() {
+        if (d === 'h') {
+          el.scrollLeft += velocity[d];
+        } else {
+          el.scrollTop += velocity[d];
+        }
+
+        if (hasRaf) {
+          scrollInt[d] = requestAnimationFrame(tick);
+        }
+      };
+
       if (v === 0) {
         reset.call(this, d);
       } else {
         if (!scrollInt[d]) {
-          scrollInt[d] = setInterval(function () {
-            if (d === 'h') {
-              el.scrollLeft += velocity[d];
-            } else {
-              el.scrollTop += velocity[d];
-            }
-          }, 16);
+          if (hasRaf) {
+            scrollInt[d] = requestAnimationFrame(tick);
+          } else {
+            scrollInt[d] = setInterval(tick, 16);
+          }
         }
       }
     };
@@ -1229,7 +1258,12 @@
         v: this.el.scroll.scrollTop - initScroll.v
       };
       t.forEach(function (di) {
-        clearInterval(scrollInt[di]);
+        if (hasRaf) {
+          cancelAnimationFrame(scrollInt[di]);
+        } else {
+          clearInterval(scrollInt[di]);
+        }
+
         scrollInt[di] = null;
         velocity[di] = 0;
       });
@@ -1692,7 +1726,7 @@
         modifying.classList.remove('drawing');
 
         if (Math.abs(modifying.offsetHeight - modifyingH) > 0) {
-          var _se = this._posToMinute(modifying);
+          var _se = this._posToMinute(modifying, true);
 
           var coords = this._getEventCoords(modifying);
 
@@ -1715,6 +1749,8 @@
             if (c.directChange === true || includesAny(c.directChange, [EVENT.modify, 'end'])) {
               _item2.end = mod.end;
               this.updateEvent(coords, _item2);
+              modifying.dataset['startm'] = _se.startm;
+              modifying.dataset['endm'] = _se.endm;
             }
           } else {
             modifying.style.height = modifyingH + 'px';
@@ -1813,7 +1849,7 @@
               modifying.style.top = _top2 + 'px';
             }
 
-            var _se2 = this._posToMinute(modifying);
+            var _se2 = this._posToMinute(modifying, true);
 
             var _coords2 = this._getEventCoords(modifying);
 
@@ -1838,6 +1874,8 @@
               _item4.start = _mod2.start;
               _item4.end = _mod2.end;
               this.updateEvent(_coords2, _item4);
+              modifying.dataset['startm'] = _se2.startm;
+              modifying.dataset['endm'] = _se2.endm;
             }
           }
         }

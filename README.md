@@ -39,6 +39,7 @@ In this document, *event* or *event item* stands for event item in the schedule,
     - [clear(which)](#clearwhich)
     - [changeStartDate(date)](#changestartdatedate)
     - [rerender()](#rerender)
+    - [updateRect()](#updaterect)
     - [destroy()](#destroy)
     - [getEvent(elem)](#geteventelem)
     - [getElem(eventItem)](#getelemeventitem)
@@ -355,6 +356,12 @@ Change the start date to target date, will also alter `instance.events` accordin
   - Type: `this`
 
 Rerender all event items in the schedule.
+
+### updateRect()
+- (return value)
+  - Type: `this`
+
+Update the container's size and position. You'll need to call this after any changes that affect the container's size and position, e.g. the container is switched from hidden to shown, a toolbar appears above the widget, etc.
 
 ### destroy()
 
