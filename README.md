@@ -2,7 +2,7 @@
 
 > Vanilla JS table schedule with DnD support.
 
-[Demo](https://monkey-d-pixel.github.io/table-schedule/index.html)
+[Demo](https://mdpx.github.io/table-schedule/index.html)
 
 In this document, *event* or *event item* stands for event item in the schedule, while *Event* stands for JavaScript `Event` object.
 
